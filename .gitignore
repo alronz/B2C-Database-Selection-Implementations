@@ -1,0 +1,15 @@
+Redis/Analytics/.gradle
+Redis/Analytics/bin
+Redis/Analytics/build
+Redis/CacheManagement/.gradle
+Redis/CacheManagement/bin
+Redis/CacheManagement/build
+Redis/CartManagement/build
+Redis/CartManagement/.gradle
+Redis/CartManagement/bin
+Redis/RedisTest/bin
+Redis/RedisTest/build
+Redis/RedisTest/.gradle
+Redis/SessionManagement/.gradle
+Redis/SessionManagement/bin
+Redis/SessionManagement/build
