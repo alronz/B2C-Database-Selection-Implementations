@@ -13,3 +13,6 @@ Redis/RedisTest/.gradle
 Redis/SessionManagement/.gradle
 Redis/SessionManagement/bin
 Redis/SessionManagement/build
+MongoDB/TPCHQueries/.gradle
+MongoDB/TPCHQueries/bin
+MongoDB/TPCHQueries/build
