@@ -208,9 +208,9 @@ public class TpcHDenormalizedModelResource {
 
 			String projectStringQuery = "{\"$project\":{\"orderdate\":1,\"orderpriority\":1,\"eq\":{\"$cond\":[{\"$lt\":[\"$lineitems.commitdate\",\"$lineitems.receiptdate\"]},0,1]}}}";
 
-			String matchStringQuery = "{\"$match\":{\"eq\":{\"$eq\":1}}}";
+			//String matchStringQuery = "{\"$match\":{\"eq\":{\"$eq\":1}}}";
 
-			String matchStringQuery2 = "{\"$match\": {\"orderdate\": {\"$gte\": ISODate(\"2015-01-01T00:00:00.000Z\")},\"orderdate\": {\"$lt\": ISODate(\"2016-01-01T00:00:00.000Z\")}}}";
+			String matchStringQuery2 = "{\"$match\": {\"orderdate\": {\"$gte\": ISODate(\"2015-01-01T00:00:00.000Z\")},\"orderdate\": {\"$lt\": ISODate(\"2016-01-01T00:00:00.000Z\")},\"eq\":{\"$eq\":1}}}";
 
 			String groupStringQuery = "{\"$group\":{\"_id\":{\"o_orderpriority\":\"$orderpriority\"},\"order_count\":{\"$sum\":1}}}";
 
@@ -221,7 +221,7 @@ public class TpcHDenormalizedModelResource {
 			BsonDocument projectBsonQuery = BsonDocument
 					.parse(projectStringQuery);
 
-			BsonDocument matchBsonQuery = BsonDocument.parse(matchStringQuery);
+			//BsonDocument matchBsonQuery = BsonDocument.parse(matchStringQuery);
 
 			BsonDocument matchBsonQuery2 = BsonDocument
 					.parse(matchStringQuery2);
@@ -232,7 +232,7 @@ public class TpcHDenormalizedModelResource {
 
 			// BsonDocument outBson = BsonDocument.parse(out);
 
-			LOGGER.info("matchBsonQuery is " + matchBsonQuery.toJson());
+			//LOGGER.info("matchBsonQuery is " + matchBsonQuery.toJson());
 
 			LOGGER.info("groupBsonQuery is " + groupBsonQuery.toJson());
 
@@ -241,7 +241,7 @@ public class TpcHDenormalizedModelResource {
 			ArrayList<Bson> aggregateQuery = new ArrayList<Bson>();
 
 			aggregateQuery.add(projectBsonQuery);
-			aggregateQuery.add(matchBsonQuery);
+			//aggregateQuery.add(matchBsonQuery);
 			// aggregateQuery.add(outBson);
 			aggregateQuery.add(matchBsonQuery2);
 			aggregateQuery.add(groupBsonQuery);

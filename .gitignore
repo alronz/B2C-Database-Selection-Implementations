@@ -16,3 +16,6 @@ Redis/SessionManagement/build
 MongoDB/TPCHQueries/.gradle
 MongoDB/TPCHQueries/bin
 MongoDB/TPCHQueries/build
+Neo4j/Neo4jTPCHQueries/build
+Neo4j/Neo4jTPCHQueries/.gradle
+Neo4j/Neo4jTPCHQueries/bin
