@@ -19,3 +19,7 @@ MongoDB/TPCHQueries/build
 Neo4j/Neo4jTPCHQueries/build
 Neo4j/Neo4jTPCHQueries/.gradle
 Neo4j/Neo4jTPCHQueries/bin
+Cassandra/CassandraTPCHQueries/bin
+Cassandra/CassandraTPCHQueries/.gradle
+Cassandra/CassandraTPCHQueries/build
+Cassandra/CassandraTPCHQueries/target

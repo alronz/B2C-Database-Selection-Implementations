@@ -10,6 +10,8 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 
 import com.codahale.metrics.annotation.Timed;
 import com.google.gson.Gson;
@@ -56,13 +58,19 @@ public class TPCHResource {
 	@GET
 	@Path("/q3/")
 	@Timed
-	@ApiOperation(value = "get result of TPCH Q3 using this model", notes = "Returns JsonObject", response = JsonObject.class)
+	@ApiOperation(value = "get result of TPCH Q3 using this model", notes = "Returns Result", response = Result.class)
 	@ApiResponses(value = { @ApiResponse(code = 500, message = "internal server error !") })
-	public JsonObject getQ2Results() {
+	public Result getQ2Results() {
 
-		JsonObject result = null;
+		Result result = null;
 
 		try {
+
+			try (Transaction ignored = this.graphDb.beginTx()) {
+				result = this.graphDb
+						.execute("match (n {name: 'my node'}) return n, n.name");
+			}
+
 			return result;
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE,
