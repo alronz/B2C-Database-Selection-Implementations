@@ -90,7 +90,7 @@ public class TPCHModel {
                 "discount double,\n" +
                 "tax double,\n" +
                 "shipdate timestamp,\n" +
-                "PRIMARY KEY ((returnflag,linestatus,orderkey,linenumber),shipdate)\n" +
+                "PRIMARY KEY ((returnflag,linestatus),orderkey,linenumber)\n" +
                 ");";
 
         ResultSet rsTpchQ1 = session.execute(createTpchQ1TableQuery);

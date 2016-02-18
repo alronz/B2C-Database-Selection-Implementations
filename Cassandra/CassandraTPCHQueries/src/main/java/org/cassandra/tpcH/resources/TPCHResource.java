@@ -46,16 +46,20 @@ public class TPCHResource {
 
         try {
 
+            String createIndexOnCommitDate = "CREATE INDEX IF NOT EXISTS shipdate_index ON CASSANDRA_EXAMPLE_KEYSPACE.TPCH_Q1 (shipdate)";
+
+
             String q1Statement = "SELECT returnflag, linestatus, sum(quantity) as sum_qty,sum(extendedprice) as sum_base_price, sum(CASSANDRA_EXAMPLE_KEYSPACE.fSumDiscPrice(extendedprice,discount)) as sum_disc_price\n" +
                     ", sum(CASSANDRA_EXAMPLE_KEYSPACE.fSumChargePrice(extendedprice,discount,tax)) as sum_charge, avg(quantity) as avg_qty,\n" +
-                    "avg(extendedprice) as avg_price, avg(discount) as avg_disc, count(*) as count_order, orderkey ,linenumber \n" +
-                    "FROM CASSANDRA_EXAMPLE_KEYSPACE.TPCH_Q1 WHERE shipdate < '2000-01-01 22:00:00-0700' and orderkey='5' and linenumber = '5' and returnflag='N' and linestatus = 'O' ; ";
+                    "avg(extendedprice) as avg_price, avg(discount) as avg_disc, count(*) as count_order \n" +
+                    "FROM CASSANDRA_EXAMPLE_KEYSPACE.TPCH_Q1 WHERE shipdate < '2000-01-01 22:00:00-0700'  and returnflag='N' and linestatus = 'O' ALLOW FILTERING ; ";
 
 
             LOGGER.info(q1Statement);
 
 
             this.model.connect();
+            this.model.executeStatement(createIndexOnCommitDate);
             ResultSet rsQ1 = this.model.executeStatement(q1Statement);
             this.model.close();
 
@@ -79,6 +83,8 @@ public class TPCHResource {
 
 
         try {
+
+
 
             String tpchQ3TempTable = " CREATE TABLE IF NOT EXISTS CASSANDRA_EXAMPLE_KEYSPACE.TPCH_Q3_TEMP\n" +
                     " (\n" +
