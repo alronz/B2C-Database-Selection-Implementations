@@ -154,7 +154,7 @@ public class TPCHResource {
             String createIndexOnCommitDate = "CREATE INDEX IF NOT EXISTS l_commitdate_index ON CASSANDRA_EXAMPLE_KEYSPACE.TPCH_Q4 (l_commitdate)";
 
             String q4Statement = "SELECT o_orderpriority, count(*) as order_count from CASSANDRA_EXAMPLE_KEYSPACE.TPCH_Q4 \n" +
-                    "where orderkey= '1' and linenumber='1' and o_orderpriority ='5-LOW' and o_orderdate >=  '1990-01-01' and o_orderdate < '2000-01-01' and l_commitdate < '2000-01-01' ALLOW FILTERING ";
+                    "where orderkey= '1' and o_orderpriority ='5-LOW' and o_orderdate >=  '1990-01-01' and o_orderdate < '2000-01-01' and l_commitdate < '2000-01-01' ALLOW FILTERING ";
 
 
             this.model.connect();

@@ -118,12 +118,11 @@ public class TPCHModel {
         String createTpchQ4Query = "CREATE TABLE IF NOT EXISTS CASSANDRA_EXAMPLE_KEYSPACE.TPCH_Q4\n" +
                 "(\n" +
                 "orderkey text,\n" +
-                "linenumber text,\n" +
                 "o_orderpriority text,\n" +
                 "o_orderdate timestamp,\n" +
                 "l_receiptdate timestamp,\n" +
                 "l_commitdate timestamp,\n" +
-                "PRIMARY KEY ((o_orderpriority,orderkey,linenumber) ,o_orderdate)\n" +
+                "PRIMARY KEY ((o_orderpriority,orderkey) ,o_orderdate)\n" +
                 ");";
 
         ResultSet rsTpchQ4 = session.execute(createTpchQ4Query);
@@ -272,10 +271,9 @@ public class TPCHModel {
 
                     if (lineItemLineFields[0].equals(lineFields[0])) {
 
-                        String insertStatement = "INSERT INTO CASSANDRA_EXAMPLE_KEYSPACE.TPCH_Q4 (orderkey,linenumber,o_orderpriority,o_orderdate,l_receiptdate," +
+                        String insertStatement = "INSERT INTO CASSANDRA_EXAMPLE_KEYSPACE.TPCH_Q4 (orderkey,o_orderpriority,o_orderdate,l_receiptdate," +
                                 "l_commitdate) VALUES" +
                                 " ('" + lineFields[0] +
-                                "','" + lineItemLineFields[3] +
                                 "','" + lineFields[5] +
                                 "','" + lineFields[4] +
                                 "','" + lineItemLineFields[12] +
