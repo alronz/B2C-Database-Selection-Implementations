@@ -90,7 +90,7 @@ public class TPCHModel {
                 "discount double,\n" +
                 "tax double,\n" +
                 "shipdate timestamp,\n" +
-                "PRIMARY KEY ((returnflag,linestatus),orderkey,linenumber)\n" +
+                "PRIMARY KEY ((returnflag,linestatus),shipdate,orderkey,linenumber)\n" +
                 ");";
 
         ResultSet rsTpchQ1 = session.execute(createTpchQ1TableQuery);
@@ -107,7 +107,7 @@ public class TPCHModel {
                 "l_extendedprice double,\n" +
                 "l_discount double,\n" +
                 "l_shipdate timestamp,\n" +
-                "PRIMARY KEY ((orderkey,o_orderdate,o_shippriority,c_mktsegment,linenumber),l_shipdate)\n" +
+                "PRIMARY KEY ((orderkey,o_orderdate,o_shippriority),c_mktsegment,l_shipdate,linenumber)\n" +
                 ");";
 
         ResultSet rsTpchQ3 = session.execute(createTpchQ3Query);
@@ -118,11 +118,12 @@ public class TPCHModel {
         String createTpchQ4Query = "CREATE TABLE IF NOT EXISTS CASSANDRA_EXAMPLE_KEYSPACE.TPCH_Q4\n" +
                 "(\n" +
                 "orderkey text,\n" +
+                "linenumber text, \n" +
                 "o_orderpriority text,\n" +
                 "o_orderdate timestamp,\n" +
                 "l_receiptdate timestamp,\n" +
                 "l_commitdate timestamp,\n" +
-                "PRIMARY KEY ((o_orderpriority,orderkey) ,o_orderdate)\n" +
+                "PRIMARY KEY (o_orderpriority,o_orderdate,orderkey,linenumber)\n" +
                 ");";
 
         ResultSet rsTpchQ4 = session.execute(createTpchQ4Query);
@@ -271,9 +272,10 @@ public class TPCHModel {
 
                     if (lineItemLineFields[0].equals(lineFields[0])) {
 
-                        String insertStatement = "INSERT INTO CASSANDRA_EXAMPLE_KEYSPACE.TPCH_Q4 (orderkey,o_orderpriority,o_orderdate,l_receiptdate," +
+                        String insertStatement = "INSERT INTO CASSANDRA_EXAMPLE_KEYSPACE.TPCH_Q4 (linenumber,orderkey,o_orderpriority,o_orderdate,l_receiptdate," +
                                 "l_commitdate) VALUES" +
-                                " ('" + lineFields[0] +
+                                " ('" + lineItemLineFields[3] +
+                                "','" + lineFields[0] +
                                 "','" + lineFields[5] +
                                 "','" + lineFields[4] +
                                 "','" + lineItemLineFields[12] +
