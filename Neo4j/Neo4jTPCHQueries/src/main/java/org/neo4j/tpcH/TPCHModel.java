@@ -25,7 +25,7 @@ import org.neo4j.graphdb.schema.ConstraintDefinition;
 
 public class TPCHModel {
 
-	DateFormat format = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss",
+	DateFormat format = new SimpleDateFormat("yyyy-mm-dd",
 			java.util.Locale.ENGLISH);
 
 	GraphDatabaseService graphDb;
@@ -745,15 +745,15 @@ public class TPCHModel {
 					Node Lineitem = this.graphDb.createNode(DynamicLabel
 							.label("Lineitem"));
 					Lineitem.setProperty("LINENUMBER", lineFields[3]);
-					Lineitem.setProperty("QUANTITY", lineFields[4]);
-					Lineitem.setProperty("EXTENDEDPRICE", lineFields[5]);
-					Lineitem.setProperty("DISCOUNT", lineFields[6]);
-					Lineitem.setProperty("TAX", lineFields[7]);
+					Lineitem.setProperty("QUANTITY", Double.valueOf(lineFields[4]));
+					Lineitem.setProperty("EXTENDEDPRICE", Double.valueOf(lineFields[5]));
+					Lineitem.setProperty("DISCOUNT", Double.valueOf(lineFields[6]));
+					Lineitem.setProperty("TAX", Double.valueOf(lineFields[7]));
 					Lineitem.setProperty("RETURNFLAG", lineFields[8]);
 					Lineitem.setProperty("LINESTATUS", lineFields[9]);
-					Lineitem.setProperty("SHIPDATE", lineFields[10]);
-					Lineitem.setProperty("COMMITDATE", lineFields[11]);
-					Lineitem.setProperty("RECEIPTDATE", lineFields[12]);
+					Lineitem.setProperty("SHIPDATE", format.parse(lineFields[10]).getTime());
+					Lineitem.setProperty("COMMITDATE", format.parse(lineFields[11]).getTime());
+					Lineitem.setProperty("RECEIPTDATE", format.parse(lineFields[12]).getTime());
 					Lineitem.setProperty("SHIPINSTRUCT", lineFields[13]);
 					Lineitem.setProperty("SHIPMODE", lineFields[14]);
 					Lineitem.setProperty("COMMENT", lineFields[15]);
@@ -872,7 +872,7 @@ public class TPCHModel {
 					Order.setProperty("ORDERKEY", lineFields[0]);
 					Order.setProperty("ORDERSTATUS", lineFields[2]);
 					Order.setProperty("TOTALPRICE", lineFields[3]);
-					Order.setProperty("ORDERDATE", lineFields[4]);
+					Order.setProperty("ORDERDATE", format.parse(lineFields[4]).getTime());
 					Order.setProperty("ORDERPRIORITY", lineFields[5]);
 					Order.setProperty("CLERK", lineFields[6]);
 					Order.setProperty("SHIPPRIORITY", lineFields[7]);
