@@ -62,6 +62,19 @@ http://localhost:{port}/api/swagger
 ````
 
 
+##### Documentation
+
+
+For each database example project, I have created a detailed explanation that can be found in the below link:
+
+https://github.com/alronz/b2c-database-selection/
+
+Beside the explanation for the projects above, you can find brief documentation for most  of the features in each database.
+
+For example, Cassandra project "Cassandra/CassandraTPCHQueries/" documentation is can be found follow :
+
+https://github.com/alronz/b2c-database-selection/blob/master/Cassandra/Examples/tpch.md
+
 
 
 
