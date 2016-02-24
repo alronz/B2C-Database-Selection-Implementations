@@ -81,7 +81,7 @@ public class TPCHResource {
     @Timed
     @ApiOperation(value = "get result of TPCH Q3 using this model", notes = "TPCH Queries", response = String.class)
     @ApiResponses(value = {@ApiResponse(code = 500, message = "internal server error !")})
-    public String getQ2Results() {
+    public String getQ3Results() {
 
         Result result = null;
 
@@ -115,7 +115,7 @@ public class TPCHResource {
     @Timed
     @ApiOperation(value = "get result of TPCH Q4 using this model", notes = "TPCH Queries", response = String.class)
     @ApiResponses(value = {@ApiResponse(code = 500, message = "internal server error !")})
-    public String getQ3Results() {
+    public String getQ4Results() {
 
         Result result = null;
 
