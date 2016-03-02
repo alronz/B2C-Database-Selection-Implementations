@@ -19,7 +19,6 @@ import org.mongoDB.tpcHQueries.health.MongoHealthCheck;
 import org.mongoDB.tpcHQueries.resources.TpcHDenormalizedModelResource;
 import org.mongoDB.tpcHQueries.resources.TpcHMixedModelResource;
 import org.mongoDB.tpcHQueries.resources.TpcHNormalizedModelResource;
-import org.mongoDB.tpcHQueries.utils.InitializeData;
 
 import com.mongodb.MongoClient;
 
@@ -27,64 +26,69 @@ import de.thomaskrille.dropwizard.environment_configuration.EnvironmentConfigura
 
 public class TpcHService extends Application<TpcHServiceConfiguration> {
 
-	private static final String CLASS_NAME = TpcHService.class.getName();
-	private static final Logger LOGGER = Logger.getLogger(CLASS_NAME);
+    private static final String CLASS_NAME = TpcHService.class.getName();
+    private static final Logger LOGGER = Logger.getLogger(CLASS_NAME);
 
-	public static void main(String[] args) throws Exception {
-		new TpcHService().run(args);
-	}
+    public static void main(String[] args) throws Exception {
+        new TpcHService().run(args);
+    }
 
-	@Override
-	public String getName() {
-		return "mongodb-test";
-	}
+    @Override
+    public String getName() {
+        return "mongodb-test";
+    }
 
-	@Override
-	public void initialize(Bootstrap<TpcHServiceConfiguration> bootstrap) {
+    @Override
+    public void initialize(Bootstrap<TpcHServiceConfiguration> bootstrap) {
 
-		bootstrap.addBundle(new AssetsBundle("/assets/", "/"));
-		bootstrap
-				.setConfigurationFactoryFactory(new EnvironmentConfigurationFactoryFactory());
+        bootstrap.addBundle(new AssetsBundle("/assets/", "/"));
+        bootstrap
+                .setConfigurationFactoryFactory(new EnvironmentConfigurationFactoryFactory());
 
-		bootstrap.addBundle(new SwaggerBundle<TpcHServiceConfiguration>() {
-			@Override
-			protected SwaggerBundleConfiguration getSwaggerBundleConfiguration(
-					TpcHServiceConfiguration configuration) {
-				return configuration.swaggerBundleConfiguration;
-			}
-		});
-	}
+        bootstrap.addBundle(new SwaggerBundle<TpcHServiceConfiguration>() {
+            @Override
+            protected SwaggerBundleConfiguration getSwaggerBundleConfiguration(
+                    TpcHServiceConfiguration configuration) {
+                return configuration.swaggerBundleConfiguration;
+            }
+        });
+    }
 
-	@Override
-	public void run(TpcHServiceConfiguration configuration,
-			Environment environment) {
+    @Override
+    public void run(TpcHServiceConfiguration configuration,
+                    Environment environment) {
 
-		MongoClient mongoClient = new MongoClient();
+        MongoClient mongoClient = new MongoClient();
 
-		if (mongoClient.getDatabase("mydb") != null) {
-			mongoClient.dropDatabase("mydb");
-		}
+        if (mongoClient.getDatabase("mydb") != null) {
+            mongoClient.dropDatabase("mydb");
+        }
 
-		InitializeData init = new InitializeData(mongoClient);
+        NormalizedExampleModel normalizedExampleModel = new NormalizedExampleModel(mongoClient);
+        normalizedExampleModel.initialiseData();
 
-		init.initialize();
+        MixedExampleModel mixedExampleModel = new MixedExampleModel(mongoClient);
+        mixedExampleModel.initialiseData();
 
-		TpcHNormalizedModelResource tpcHNormalizedQueries = new TpcHNormalizedModelResource(
-				mongoClient);
+        DenormalizedExampleModel denormalizedExampleModel = new DenormalizedExampleModel(mongoClient);
+        denormalizedExampleModel.initialiseData();
 
-		TpcHMixedModelResource tpcHMixedModelResource = new TpcHMixedModelResource(
-				mongoClient);
+        TpcHNormalizedModelResource tpcHNormalizedQueries = new TpcHNormalizedModelResource(
+                mongoClient);
 
-		TpcHDenormalizedModelResource tpcHDenormalizedModelResource = new TpcHDenormalizedModelResource(
-				mongoClient);
+        TpcHMixedModelResource tpcHMixedModelResource = new TpcHMixedModelResource(
+                mongoClient);
 
-		final MongoHealthCheck healthCheck = new MongoHealthCheck(mongoClient);
-		environment.healthChecks().register("mongodb", healthCheck);
-		environment.jersey().setUrlPattern("/api/*");
-		environment.jersey().register(tpcHNormalizedQueries);
-		environment.jersey().register(tpcHMixedModelResource);
-		environment.jersey().register(tpcHDenormalizedModelResource);
+        TpcHDenormalizedModelResource tpcHDenormalizedModelResource = new TpcHDenormalizedModelResource(
+                mongoClient);
 
-	}
+        final MongoHealthCheck healthCheck = new MongoHealthCheck(mongoClient);
+        environment.healthChecks().register("mongodb", healthCheck);
+        environment.jersey().setUrlPattern("/api/*");
+        environment.jersey().register(tpcHNormalizedQueries);
+        environment.jersey().register(tpcHMixedModelResource);
+        environment.jersey().register(tpcHDenormalizedModelResource);
+
+    }
 
 }

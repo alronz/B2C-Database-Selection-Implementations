@@ -1,115 +1,397 @@
 package org.mongoDB.tpcHQueries;
 
+import java.io.*;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
 public class NormalizedExampleModel {
 
-	Document region = new Document();
-	Document nation = new Document();
-	Document customer = new Document();
-	Document supplier = new Document();
-	Document part = new Document();
-	Document partsupp = new Document();
-	Document lineitem = new Document();
-	List<String> lineitems = new ArrayList<String>();
-	Document order = new Document();
+    private MongoCollection<Document> normalized_customer;
+    private MongoCollection<Document> normalized_supplier;
+    private MongoCollection<Document> normalized_partsupp;
+    private MongoCollection<Document> normalized_order;
+    private MongoCollection<Document> normalized_region;
+    private MongoCollection<Document> normalized_nation;
+    private MongoCollection<Document> normalized_part;
+    private MongoCollection<Document> normalized_lineitem;
 
-	DateFormat format = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss",
-			java.util.Locale.ENGLISH);
+    private MongoClient mongoClient;
+    private MongoDatabase database;
 
-	public NormalizedExampleModel() throws ParseException {
 
-		region.append("_id", "18f228bc-a7d1-11e5-bf7f-feff819cdc9f")
-				.append("name", "Texas").append("comment", "some text");
+    DateFormat format = new SimpleDateFormat("yyyy-mm-dd",
+            java.util.Locale.ENGLISH);
 
-		nation.append("_id", "0aa770e6-a7d1-11e5-bf7f-feff819cdc9f")
-				.append("name", "US").append("comment", "some text")
-				.append("region", "18f228bc-a7d1-11e5-bf7f-feff819cdc9f");
 
-		customer.append("_id", "f4005128-a7d0-11e5-bf7f-feff819cdc9f")
-				.append("name", "Bilal").append("address", "Street 1")
-				.append("phone", 1223456).append("acctbal", 212)
-				.append("mktsegment", "some text")
-				.append("comment", "some text")
-				.append("nation", "0aa770e6-a7d1-11e5-bf7f-feff819cdc9f");
+    public NormalizedExampleModel(MongoClient mongoClient) {
 
-		part.append("_id", "75f28eda-a7d1-11e5-bf7f-feff819cdc9f")
-				.append("name", "Tshirt").append("mfgr", "Boss")
-				.append("brand", "Boss").append("type", "sport")
-				.append("size", 40).append("container", "some text")
-				.append("retailprice", 230).append("comment", "some text");
+        this.mongoClient = mongoClient;
 
-		supplier.append("_id", "968a0d3a-a7d1-11e5-bf7f-feff819cdc9f")
-				.append("name", "Boss Supplier").append("address", "street 2")
-				.append("phone", 212323).append("acctbal", 2933)
-				.append("comment", "some text")
-				.append("nation", "0aa770e6-a7d1-11e5-bf7f-feff819cdc9f");
+        this.database = this.mongoClient.getDatabase("mydb");
+    }
 
-		partsupp.append("_id", "62353e7e-a7d1-11e5-bf7f-feff819cdc9f")
-				.append("availqty", 20).append("supplycost", 220)
-				.append("comment", "some text")
-				.append("part", "75f28eda-a7d1-11e5-bf7f-feff819cdc9f")
-				.append("supplier", "968a0d3a-a7d1-11e5-bf7f-feff819cdc9f");
 
-		lineitem.append("_id", "2ddbd282-a7d1-11e5-bf7f-feff819cdc9f")
-				.append("quantity", 1).append("extendedprice", 200)
-				.append("discount", 20).append("tax", 2)
-				.append("returnflag", false).append("linestatus", "available")
-				.append("shipdate", format.parse("2015-12-21 10:51:25"))
-				.append("commitdate", format.parse("2015-12-21 10:51:25"))
-				.append("receiptdate", format.parse("2015-12-21 10:51:25"))
-				.append("shipinstruct", "some text").append("shipmode", "DHL")
-				.append("comment", "some text")
-				.append("partsupp", "62353e7e-a7d1-11e5-bf7f-feff819cdc9f");
+    void initialiseData() {
 
-		lineitems.add("2ddbd282-a7d1-11e5-bf7f-feff819cdc9f");
+        createRegion();
+        createNation();
+        createCustomer();
+        createSupplier();
+        createPart();
+        createPartSupp();
+        createOrder();
+        createLineItem();
+    }
 
-		order.append("_id", "7821ef4d-8e8c-46e0-950d-83c245b9bee8")
-				.append("orderstatus", "Open").append("totalprice", 233)
-				.append("orderdate", format.parse("2015-12-21 10:51:25"))
-				.append("orderpriority", "High").append("clerk", "John")
-				.append("shippriority", "High")
-				.append("comment", "This is an order")
-				.append("customer", "f4005128-a7d0-11e5-bf7f-feff819cdc9f")
-				.append("lineitems", lineitems);
-	}
+    private void createCustomer() {
 
-	public Document getRegion() {
-		return region;
-	}
+        File file = new File("src/main/java/org/mongoDB/tpcHQueries/data/customer.txt");
 
-	public Document getNation() {
-		return nation;
-	}
+        if (this.database.getCollection("normalized_customer") == null) {
+            this.database.createCollection("normalized_customer");
+        } else {
+            this.database.getCollection("normalized_customer").drop();
+            this.database.createCollection("normalized_customer");
+        }
 
-	public Document getCustomer() {
-		return customer;
-	}
+        normalized_customer = this.database
+                .getCollection("normalized_customer");
 
-	public Document getSupplier() {
-		return supplier;
-	}
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
 
-	public Document getPart() {
-		return part;
-	}
+            while ((line = br.readLine()) != null) {
+                // process the line.
 
-	public Document getPartsupp() {
-		return partsupp;
-	}
+                String[] lineFields = line.split(Pattern.quote("|"));
 
-	public Document getLineitem() {
-		return lineitem;
-	}
+                Document customer = new Document();
 
-	public Document getOrder() {
-		return order;
-	}
+                customer.append("CUSTKEY", lineFields[0])
+                        .append("NAME", lineFields[1]).append("ADDRESS", lineFields[2])
+                        .append("PHONE", lineFields[4]).append("ACCTBAL", Double.valueOf(lineFields[5]))
+                        .append("MKTSEGMENT", lineFields[6])
+                        .append("COMMENT", lineFields[7]).append("NATIONKEY", lineFields[3]);
+
+                this.normalized_customer.insertOne(customer);
+            }
+
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+
+    }
+
+
+    void createSupplier() {
+
+        File file = new File("src/main/java/org/mongoDB/tpcHQueries/data/supplier.txt");
+
+        if (this.database.getCollection("normalized_supplier") == null) {
+            this.database.createCollection("normalized_supplier");
+        } else {
+            this.database.getCollection("normalized_supplier").drop();
+            this.database.createCollection("normalized_supplier");
+        }
+
+        normalized_supplier = this.database
+                .getCollection("normalized_supplier");
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                // process the line.
+
+                String[] lineFields = line.split(Pattern.quote("|"));
+
+                Document supplier = new Document();
+
+                supplier.append("SUPPKEY", lineFields[0])
+                        .append("NAME", lineFields[1]).append("ADDRESS", lineFields[2])
+                        .append("PHONE", lineFields[4]).append("ACCTBAL", Double.valueOf(lineFields[5]))
+                        .append("COMMENT", lineFields[6])
+                        .append("NATIONKEY", lineFields[3]);
+
+                this.normalized_supplier.insertOne(supplier);
+            }
+
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    void createPart() {
+
+        File file = new File("src/main/java/org/mongoDB/tpcHQueries/data/part.txt");
+
+        if (this.database.getCollection("normalized_part") == null) {
+            this.database.createCollection("normalized_part");
+        } else {
+            this.database.getCollection("normalized_part").drop();
+            this.database.createCollection("normalized_part");
+        }
+
+        normalized_part = this.database
+                .getCollection("normalized_part");
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                // process the line.
+
+                String[] lineFields = line.split(Pattern.quote("|"));
+
+                Document part = new Document();
+
+                part.append("PARTKEY", lineFields[0])
+                        .append("NAME", lineFields[1]).append("MFGR", lineFields[2])
+                        .append("BRAND", lineFields[3]).append("TYPE", lineFields[4])
+                        .append("SIZE", lineFields[5])
+                        .append("CONTAINER", lineFields[6]).append("RETAILPRICE", Double.valueOf(lineFields[7])).append("COMMENT", lineFields[8]);
+
+                this.normalized_part.insertOne(part);
+            }
+
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+
+    }
+
+    void createPartSupp() {
+
+        File file = new File("src/main/java/org/mongoDB/tpcHQueries/data/partsupp.txt");
+
+        if (this.database.getCollection("normalized_partsupp") == null) {
+            this.database.createCollection("normalized_partsupp");
+        } else {
+            this.database.getCollection("normalized_partsupp").drop();
+            this.database.createCollection("normalized_partsupp");
+        }
+
+        normalized_partsupp = this.database
+                .getCollection("normalized_partsupp");
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                // process the line.
+
+                String[] lineFields = line.split(Pattern.quote("|"));
+
+                Document partsupp = new Document();
+
+                partsupp.append("PARTKEY", lineFields[0])
+                        .append("SUPPKEY", lineFields[1]).append("AVAILQTY", Double.valueOf(lineFields[2]))
+                        .append("SUPPLYCOST", Double.valueOf(lineFields[3])).append("COMMENT", lineFields[4]);
+
+                this.normalized_partsupp.insertOne(partsupp);
+            }
+
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+    }
+
+    void createOrder() {
+
+        File file = new File("src/main/java/org/mongoDB/tpcHQueries/data/order.txt");
+
+        if (this.database.getCollection("normalized_order") == null) {
+            this.database.createCollection("normalized_order");
+        } else {
+            this.database.getCollection("normalized_order").drop();
+            this.database.createCollection("normalized_order");
+        }
+
+        normalized_order = this.database
+                .getCollection("normalized_order");
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                // process the line.
+
+                String[] lineFields = line.split(Pattern.quote("|"));
+
+                Document order = new Document();
+
+                order.append("ORDERKEY", lineFields[0])
+                        .append("CUSTKEY", lineFields[1]).append("ORDERSTATUS", lineFields[2])
+                        .append("TOTALPRICE", Double.valueOf(lineFields[3])).append("ORDERDATE", format.parse(lineFields[4]))
+                        .append("ORDERPRIORITY", lineFields[5]).append("CLERK", lineFields[6])
+                        .append("SHIPPRIORITY", lineFields[7]).append("COMMENT", lineFields[8]);
+
+                this.normalized_order.insertOne(order);
+            }
+
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void createRegion() {
+
+        File file = new File("src/main/java/org/mongoDB/tpcHQueries/data/region.txt");
+
+        if (this.database.getCollection("normalized_region") == null) {
+            this.database.createCollection("normalized_region");
+        } else {
+            this.database.getCollection("normalized_region").drop();
+            this.database.createCollection("normalized_region");
+        }
+
+        normalized_region = this.database
+                .getCollection("normalized_region");
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                // process the line.
+
+                String[] lineFields = line.split(Pattern.quote("|"));
+
+                Document region = new Document();
+
+                region.append("REGIONKEY", lineFields[0])
+                        .append("NAME", lineFields[1]).append("COMMENT", lineFields[2]);
+
+                this.normalized_region.insertOne(region);
+            }
+
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    void createNation() {
+
+        File file = new File("src/main/java/org/mongoDB/tpcHQueries/data/nation.txt");
+
+        if (this.database.getCollection("normalized_nation") == null) {
+            this.database.createCollection("normalized_nation");
+        } else {
+            this.database.getCollection("normalized_nation").drop();
+            this.database.createCollection("normalized_nation");
+        }
+
+        normalized_nation = this.database
+                .getCollection("normalized_nation");
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                // process the line.
+
+                String[] lineFields = line.split(Pattern.quote("|"));
+
+                Document nation = new Document();
+
+                nation.append("NATIONKEY", lineFields[0])
+                        .append("NAME", lineFields[1]).append("REGIONKEY", lineFields[2]).append("COMMENT", lineFields[3]);
+
+                this.normalized_nation.insertOne(nation);
+            }
+
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    void createLineItem() {
+
+        File file = new File("src/main/java/org/mongoDB/tpcHQueries/data/lineitem.txt");
+
+        if (this.database.getCollection("normalized_lineitem") == null) {
+            this.database.createCollection("normalized_lineitem");
+        } else {
+            this.database.getCollection("normalized_lineitem").drop();
+            this.database.createCollection("normalized_lineitem");
+        }
+
+        normalized_lineitem = this.database
+                .getCollection("normalized_lineitem");
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                // process the line.
+
+                String[] lineFields = line.split(Pattern.quote("|"));
+
+                Document lineitem = new Document();
+
+                lineitem.append("ORDERKEY", lineFields[0])
+                        .append("PARTKEY", lineFields[1]).append("SUPPKEY", lineFields[2]).append("LINENUMBER", lineFields[3])
+                        .append("QUANTITY", Double.valueOf(lineFields[4])).append("EXTENDEDPRICE", Double.valueOf(lineFields[5]))
+                        .append("DISCOUNT", Double.valueOf(lineFields[6])).append("TAX", Double.valueOf(lineFields[7]))
+                        .append("RETURNFLAG", lineFields[8]).append("LINESTATUS", lineFields[9])
+                        .append("SHIPDATE", format.parse(lineFields[10])).append("COMMITDATE", format.parse(lineFields[11]))
+                        .append("RECEIPTDATE", format.parse(lineFields[12])).append("SHIPINSTRUCT", lineFields[13])
+                        .append("SHIPMODE", lineFields[14]).append("COMMENT", lineFields[15]);
+
+                this.normalized_lineitem.insertOne(lineitem);
+            }
+
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }

@@ -10,6 +10,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 
+import com.mongodb.client.MongoCursor;
+import com.sun.research.ws.wadl.Doc;
 import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -28,287 +30,317 @@ import com.wordnik.swagger.annotations.*;
 @Api(value = "/TpcH/Normalized", description = "testing tpcH queries with normalized data model")
 public class TpcHNormalizedModelResource {
 
-	private static final String CLASS_NAME = TpcHNormalizedModelResource.class
-			.getName();
-	private static final Logger LOGGER = Logger.getLogger(CLASS_NAME);
+    private static final String CLASS_NAME = TpcHNormalizedModelResource.class
+            .getName();
+    private static final Logger LOGGER = Logger.getLogger(CLASS_NAME);
 
-	private MongoClient mongoClient;
-	private MongoDatabase database;
+    private MongoClient mongoClient;
+    private MongoDatabase database;
 
-	private MongoCollection<Document> normalized_customer;
-	private MongoCollection<Document> normalized_supplier;
-	private MongoCollection<Document> normalized_partsupp;
-	private MongoCollection<Document> normalized_order;
-	private MongoCollection<Document> normalized_region;
-	private MongoCollection<Document> normalized_nation;
-	private MongoCollection<Document> normalized_part;
-	private MongoCollection<Document> normalized_lineitem;
+    private MongoCollection<Document> normalized_customer;
+    private MongoCollection<Document> normalized_supplier;
+    private MongoCollection<Document> normalized_partsupp;
+    private MongoCollection<Document> normalized_order;
+    private MongoCollection<Document> normalized_region;
+    private MongoCollection<Document> normalized_nation;
+    private MongoCollection<Document> normalized_part;
+    private MongoCollection<Document> normalized_lineitem;
 
-	public TpcHNormalizedModelResource(MongoClient mongoClient) {
+    public TpcHNormalizedModelResource(MongoClient mongoClient) {
 
-		this.mongoClient = mongoClient;
+        this.mongoClient = mongoClient;
 
-		this.database = this.mongoClient.getDatabase("mydb");
+        this.database = this.mongoClient.getDatabase("mydb");
 
-		normalized_customer = this.database
-				.getCollection("normalized_customer");
-		normalized_supplier = this.database
-				.getCollection("normalized_supplier");
-		normalized_partsupp = this.database
-				.getCollection("normalized_partsupp");
-		normalized_order = this.database.getCollection("normalized_order");
-		normalized_region = this.database.getCollection("normalized_region");
-		normalized_nation = this.database.getCollection("normalized_nation");
-		normalized_part = this.database.getCollection("normalized_part");
-		normalized_lineitem = this.database
-				.getCollection("normalized_lineitem");
+        normalized_customer = this.database
+                .getCollection("normalized_customer");
+        normalized_supplier = this.database
+                .getCollection("normalized_supplier");
+        normalized_partsupp = this.database
+                .getCollection("normalized_partsupp");
+        normalized_order = this.database.getCollection("normalized_order");
+        normalized_region = this.database.getCollection("normalized_region");
+        normalized_nation = this.database.getCollection("normalized_nation");
+        normalized_part = this.database.getCollection("normalized_part");
+        normalized_lineitem = this.database
+                .getCollection("normalized_lineitem");
 
-	}
+    }
 
-	@GET
-	@Path("/q1/")
-	@Timed
-	@ApiOperation(value = "get result of TPCH Q1 using this model", notes = "Returns mongoDB document(s)", response = Document.class, responseContainer = "list")
-	@ApiResponses(value = { @ApiResponse(code = 500, message = "internal server error !") })
-	public Document getQ1Results() {
+    @GET
+    @Path("/q1")
+    @Timed
+    @ApiOperation(value = "get result of TPCH Q1 using this model", notes = "Returns mongoDB document(s)", response = Document.class, responseContainer = "list")
+    @ApiResponses(value = {@ApiResponse(code = 500, message = "internal server error !")})
+    public ArrayList<Document> getQ1Results() {
 
-		AggregateIterable<Document> result;
+        AggregateIterable<Document> result;
 
-		try {
+        try {
 
-			String matchStringQuery = "{\"$match\":{\"shipdate\":{\"$lte\":ISODate(\"2016-01-01T00:00:00.000Z\")}}}";
+            String matchStringQuery = "{\"$match\":{\"SHIPDATE\":{\"$lte\":ISODate(\"2016-01-01T00:00:00.000Z\")}}}";
 
-			String projectStringQuery = "{\"$project\":{\"returnflag\":1,\"linestatus\":1,\"quantity\":1,\"extendedprice\":1,\"discount\":1,\"l_dis_min_1\":{\"$subtract\":[1,\"$discount\"]},\"l_tax_plus_1\":{\"$add\":[\"$tax\",1]}}}";
+            String projectStringQuery = "{\"$project\":{\"RETURNFLAG\":1,\"LINESTATUS\":1,\"QUANTITY\":1,\"EXTENDEDPRICE\":1,\"DISCOUNT\":1,\"l_dis_min_1\":{\"$subtract\":[1,\"$DISCOUNT\"]},\"l_tax_plus_1\":{\"$add\":[\"$TAX\",1]}}}";
 
-			String groupStringQuery = "{\"$group\":{\"_id\":{\"l_returnflag\":\"$returnflag\",\"l_linestatus\":\"$linestatus\"},\"sum_qty\":{\"$sum\":\"$quantity\"},\"sum_base_price\":{\"$sum\":\"$extendedprice\"},\"sum_disc_price\":{\"$sum\":{\"$multiply\":[\"$extendedprice\",\"$l_dis_min_1\"]}},\"sum_charge\":{\"$sum\":{\"$multiply\":[\"$extendedprice\",{\"$multiply\":[\"$l_tax_plus_1\",\"$l_dis_min_1\"]}]}},\"avg_price\":{\"$avg\":\"$extendedprice\"},\"avg_disc\":{\"$avg\":\"$discount\"},\"count_order\":{\"$sum\":1}}}";
+            String groupStringQuery = "{\"$group\":{\"_id\":{\"RETURNFLAG\":\"$RETURNFLAG\",\"LINESTATUS\":\"$LINESTATUS\"},\"sum_qty\":{\"$sum\":\"$QUANTITY\"},\"sum_base_price\":{\"$sum\":\"$EXTENDEDPRICE\"},\"sum_disc_price\":{\"$sum\":{\"$multiply\":[\"$EXTENDEDPRICE\",\"$l_dis_min_1\"]}},\"sum_charge\":{\"$sum\":{\"$multiply\":[\"$EXTENDEDPRICE\",{\"$multiply\":[\"$l_tax_plus_1\",\"$l_dis_min_1\"]}]}},\"avg_price\":{\"$avg\":\"$EXTENDEDPRICE\"},\"avg_disc\":{\"$avg\":\"$DISCOUNT\"},\"count_order\":{\"$sum\":1}}}";
 
-			String sortStringQuery = "{\"$sort\":{\"returnflag\":1,\"linestatus\":1}}";
+            String sortStringQuery = "{\"$sort\":{\"RETURNFLAG\":1,\"LINESTATUS\":1}}";
 
-			// String out = "{\"$out\":\"out\"}";
+            // String out = "{\"$out\":\"out\"}";
 
-			BsonDocument matchBsonQuery = BsonDocument.parse(matchStringQuery);
+            BsonDocument matchBsonQuery = BsonDocument.parse(matchStringQuery);
 
-			BsonDocument projectBsonQuery = BsonDocument
-					.parse(projectStringQuery);
+            BsonDocument projectBsonQuery = BsonDocument
+                    .parse(projectStringQuery);
 
-			BsonDocument groupBsonQuery = BsonDocument.parse(groupStringQuery);
+            BsonDocument groupBsonQuery = BsonDocument.parse(groupStringQuery);
 
-			BsonDocument sortBsonQuery = BsonDocument.parse(sortStringQuery);
+            BsonDocument sortBsonQuery = BsonDocument.parse(sortStringQuery);
 
-			// BsonDocument outBson = BsonDocument.parse(out);
+            // BsonDocument outBson = BsonDocument.parse(out);
 
-			LOGGER.info("matchBsonQuery is " + matchBsonQuery.toJson());
+            LOGGER.info("matchBsonQuery is " + matchBsonQuery.toJson());
 
-			LOGGER.info("groupBsonQuery is " + groupBsonQuery.toJson());
+            LOGGER.info("groupBsonQuery is " + groupBsonQuery.toJson());
 
-			LOGGER.info("sortBsonQuery is " + sortBsonQuery.toJson());
+            LOGGER.info("sortBsonQuery is " + sortBsonQuery.toJson());
 
-			ArrayList<Bson> aggregateQuery = new ArrayList<Bson>();
+            ArrayList<Bson> aggregateQuery = new ArrayList<Bson>();
 
-			aggregateQuery.add(matchBsonQuery);
-			// aggregateQuery.add(outBson);
-			aggregateQuery.add(projectBsonQuery);
-			aggregateQuery.add(groupBsonQuery);
-			aggregateQuery.add(sortBsonQuery);
+            aggregateQuery.add(matchBsonQuery);
+            // aggregateQuery.add(outBson);
+            aggregateQuery.add(projectBsonQuery);
+            aggregateQuery.add(groupBsonQuery);
+            aggregateQuery.add(sortBsonQuery);
 
-			result = this.normalized_lineitem.aggregate(aggregateQuery);
+            result = this.normalized_lineitem.aggregate(aggregateQuery);
 
-			// LOGGER.info("result is " +result.first().toJson());
+            // LOGGER.info("result is " +result.first().toJson());
 
-			return result.first();
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE,
-					"internal server error !" + e.getLocalizedMessage());
-			final String shortReason = "internal server error !";
-			Exception cause = new IllegalArgumentException(shortReason);
-			throw new WebApplicationException(cause,
-					javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR);
-		}
-	}
+            MongoCursor<Document> iterator = result.iterator();
 
-	@GET
-	@Path("/q3/")
-	@Timed
-	@ApiOperation(value = "get result of TPCH Q3 using this model", notes = "Returns mongoDB document(s)", response = Document.class, responseContainer = "list")
-	@ApiResponses(value = { @ApiResponse(code = 500, message = "internal server error !") })
-	public Document getQ2Results() {
+            ArrayList<Document> results = new ArrayList<Document>();
+            while (iterator.hasNext()) {
+                Document resultDoc = iterator.next();
+                results.add(resultDoc);
+            }
 
-		AggregateIterable<Document> result;
+            return results;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE,
+                    "internal server error !" + e.getLocalizedMessage());
+            final String shortReason = "internal server error !";
+            Exception cause = new IllegalArgumentException(shortReason);
+            throw new WebApplicationException(cause,
+                    javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
 
-		try {
+    @GET
+    @Path("/q3")
+    @Timed
+    @ApiOperation(value = "get result of TPCH Q3 using this model", notes = "Returns mongoDB document(s)", response = Document.class, responseContainer = "list")
+    @ApiResponses(value = {@ApiResponse(code = 500, message = "internal server error !")})
+    public ArrayList<Document> getQ3Results() {
 
-			BsonDocument bsonQuery = BsonDocument
-					.parse("{\"orderdate\":{\"$lte\":ISODate(\"2016-01-01T00:00:00.000Z\") }}");
+        AggregateIterable<Document> result;
 
-			this.database.createCollection("normalized_q3_new_joined_orders");
+        try {
 
-			final MongoCollection<Document> normalized_q3_new_joined_orders = this.database
-					.getCollection("normalized_q3_new_joined_orders");
+            BsonDocument bsonQuery = BsonDocument
+                    .parse("{\"ORDERDATE\":{\"$lte\":ISODate(\"2016-01-01T00:00:00.000Z\") }}");
 
-			this.normalized_order.find(bsonQuery).forEach(
-					new Block<Document>() {
-						@Override
-						public void apply(final Document order) {
-							BsonDocument customerBsonQuery = BsonDocument
-									.parse("{\"_id\":\""
-											+ order.get("customer") + "\"}");
+            this.database.createCollection("normalized_q3_new_joined_orders");
 
-							order.put("customer",
-									normalized_customer.find(customerBsonQuery)
-											.first());
+            final MongoCollection<Document> normalized_q3_new_joined_orders = this.database
+                    .getCollection("normalized_q3_new_joined_orders");
 
-							BsonDocument lineitemsBsonQuery = BsonDocument
-									.parse("{\"_id\":{\"$in\":"
-											+ new Gson().toJson(order
-													.get("lineitems")) + "}}");
+            this.normalized_order.find(bsonQuery).forEach(
+                    new Block<Document>() {
+                        @Override
+                        public void apply(final Document order) {
+                            BsonDocument customerBsonQuery = BsonDocument
+                                    .parse("{\"CUSTKEY\":\""
+                                            + order.get("CUSTKEY") + "\"}");
 
-							order.put("lineitems", normalized_lineitem
-									.find(lineitemsBsonQuery));
+                            order.put("customer",
+                                    normalized_customer.find(customerBsonQuery)
+                                            .first());
 
-							normalized_q3_new_joined_orders.insertOne(order);
-						}
-					});
+                            BsonDocument lineitemsBsonQuery = BsonDocument
+                                    .parse("{\"ORDERKEY\":\""
+                                            + order
+                                            .get("ORDERKEY") + "\"}");
 
-			String matchStringQuery = "{\"$match\":{\"customer.mktsegment\":\"some text\",\"lineitems.shipdate\":{\"$gte\": ISODate(\"2015-01-01T00:00:00.000Z\") }}}";
+                            order.put("lineitems", normalized_lineitem
+                                    .find(lineitemsBsonQuery));
 
-			String unWindStringQuery = "{$unwind: \"$lineitems\"}";
+                            normalized_q3_new_joined_orders.insertOne(order);
+                        }
+                    });
 
-			String projectStringQuery = "{\"$project\":{\"orderdate\":1,\"shippriority\":1,\"lineitems.extendedprice\":1,\"l_dis_min_1\":{\"$subtract\":[1,\"$lineitems.discount\"]}}}";
+            String matchStringQuery = "{\"$match\":{\"customer.MKTSEGMENT\":\"AUTOMOBILE\",\"lineitems.SHIPDATE\":{\"$gte\": ISODate(\"1990-01-01T00:00:00.000Z\") }}}";
 
-			String groupStringQuery = "{\"$group\":{\"_id\":{\"l_orderkey\":\"$_id\",\"o_orderdate\":\"$orderdate\",\"o_shippriority\":\"$shippriority\"},\"revenue\":{\"$sum\":{\"$multiply\":[\"$lineitems.extendedprice\",\"$l_dis_min_1\"]}}}}";
+            String unWindStringQuery = "{$unwind: \"$lineitems\"}";
 
-			String sortStringQuery = "{\"$sort\":{\"revenue\":1,\"o_orderdate\":1}}";
+            String projectStringQuery = "{\"$project\":{\"ORDERDATE\":1,\"SHIPPRIORITY\":1,\"lineitems.EXTENDEDPRICE\":1,\"l_dis_min_1\":{\"$subtract\":[1,\"$lineitems.DISCOUNT\"]}}}";
 
-			// String out = "{\"$out\":\"out\"}";
+            String groupStringQuery = "{\"$group\":{\"_id\":{\"ORDERKEY\":\"$ORDERKEY\",\"ORDERDATE\":\"$ORDERDATE\",\"SHIPPRIORITY\":\"$SHIPPRIORITY\"},\"revenue\":{\"$sum\":{\"$multiply\":[\"$lineitems.EXTENDEDPRICE\",\"$l_dis_min_1\"]}}}}";
 
-			BsonDocument matchBsonQuery = BsonDocument.parse(matchStringQuery);
+            String sortStringQuery = "{\"$sort\":{\"revenue\":1,\"ORDERDATE\":1}}";
 
-			BsonDocument unWindBsonQuery = BsonDocument
-					.parse(unWindStringQuery);
+            // String out = "{\"$out\":\"out\"}";
 
-			BsonDocument projectBsonQuery = BsonDocument
-					.parse(projectStringQuery);
+            BsonDocument matchBsonQuery = BsonDocument.parse(matchStringQuery);
 
-			BsonDocument groupBsonQuery = BsonDocument.parse(groupStringQuery);
+            BsonDocument unWindBsonQuery = BsonDocument
+                    .parse(unWindStringQuery);
 
-			BsonDocument sortBsonQuery = BsonDocument.parse(sortStringQuery);
+            BsonDocument projectBsonQuery = BsonDocument
+                    .parse(projectStringQuery);
 
-			// BsonDocument outBson = BsonDocument.parse(out);
+            BsonDocument groupBsonQuery = BsonDocument.parse(groupStringQuery);
 
-			LOGGER.info("matchBsonQuery is " + matchBsonQuery.toJson());
+            BsonDocument sortBsonQuery = BsonDocument.parse(sortStringQuery);
 
-			LOGGER.info("groupBsonQuery is " + groupBsonQuery.toJson());
+            // BsonDocument outBson = BsonDocument.parse(out);
 
-			LOGGER.info("sortBsonQuery is " + sortBsonQuery.toJson());
+            LOGGER.info("matchBsonQuery is " + matchBsonQuery.toJson());
 
-			ArrayList<Bson> aggregateQuery = new ArrayList<Bson>();
+            LOGGER.info("groupBsonQuery is " + groupBsonQuery.toJson());
 
-			aggregateQuery.add(matchBsonQuery);
-			// aggregateQuery.add(outBson);
-			aggregateQuery.add(unWindBsonQuery);
-			aggregateQuery.add(projectBsonQuery);
-			aggregateQuery.add(groupBsonQuery);
-			aggregateQuery.add(sortBsonQuery);
+            LOGGER.info("sortBsonQuery is " + sortBsonQuery.toJson());
 
-			result = normalized_q3_new_joined_orders.aggregate(aggregateQuery);
+            ArrayList<Bson> aggregateQuery = new ArrayList<Bson>();
 
-			// LOGGER.info("result is " +result.first().toJson());
+            aggregateQuery.add(matchBsonQuery);
+            // aggregateQuery.add(outBson);
+            aggregateQuery.add(unWindBsonQuery);
+            aggregateQuery.add(projectBsonQuery);
+            aggregateQuery.add(groupBsonQuery);
+            aggregateQuery.add(sortBsonQuery);
 
-			return result.first();
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE,
-					"internal server error !" + e.getLocalizedMessage());
-			final String shortReason = "internal server error !";
-			Exception cause = new IllegalArgumentException(shortReason);
-			throw new WebApplicationException(cause,
-					javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR);
-		}
-	}
+            result = normalized_q3_new_joined_orders.aggregate(aggregateQuery);
 
-	@GET
-	@Path("/q4/")
-	@Timed
-	@ApiOperation(value = "get result of TPCH Q4 using this model", notes = "Returns mongoDB document(s)", response = Document.class, responseContainer = "list")
-	@ApiResponses(value = { @ApiResponse(code = 500, message = "internal server error !") })
-	public Document getQ3Results() {
+            // LOGGER.info("result is " +result.first().toJson());
 
-		AggregateIterable<Document> result;
+            MongoCursor<Document> iterator = result.iterator();
 
-		try {
+            ArrayList<Document> results = new ArrayList<Document>();
+            while (iterator.hasNext()) {
+                Document resultDoc = iterator.next();
+                results.add(resultDoc);
+            }
 
-			BsonDocument bsonQuery = BsonDocument
-					.parse("{\"orderdate\": {\"$gte\": ISODate(\"2015-01-01T00:00:00.000Z\")},\"orderdate\": {\"$lt\": ISODate(\"2016-01-01T00:00:00.000Z\")}}");
+            normalized_q3_new_joined_orders.drop();
 
-			this.database.createCollection("normalized_q4_new_joined_orders");
+            return results;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE,
+                    "internal server error !" + e.getLocalizedMessage());
+            final String shortReason = "internal server error !";
+            Exception cause = new IllegalArgumentException(shortReason);
+            throw new WebApplicationException(cause,
+                    javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
 
-			final MongoCollection<Document> normalized_q4_new_joined_orders = this.database
-					.getCollection("normalized_q4_new_joined_orders");
+    @GET
+    @Path("/q4")
+    @Timed
+    @ApiOperation(value = "get result of TPCH Q4 using this model", notes = "Returns mongoDB document(s)", response = Document.class, responseContainer = "list")
+    @ApiResponses(value = {@ApiResponse(code = 500, message = "internal server error !")})
+    public ArrayList<Document> getQ4Results() {
 
-			this.normalized_order.find(bsonQuery).forEach(
-					new Block<Document>() {
-						@Override
-						public void apply(final Document order) {
+        AggregateIterable<Document> result;
 
-							BsonDocument lineitemsBsonQuery = BsonDocument
-									.parse("{\"_id\":{\"$in\":"
-											+ new Gson().toJson(order
-													.get("lineitems")) + "}}");
+        try {
 
-							order.put("lineitems", normalized_lineitem
-									.find(lineitemsBsonQuery));
+            BsonDocument bsonQuery = BsonDocument
+                    .parse("{\"ORDERDATE\": {\"$gte\": ISODate(\"1990-01-01T00:00:00.000Z\")},\"ORDERDATE\": {\"$lt\": ISODate(\"2000-01-01T00:00:00.000Z\")}}");
 
-							normalized_q4_new_joined_orders.insertOne(order);
-						}
-					});
+            this.database.createCollection("normalized_q4_new_joined_orders");
 
-			String projectStringQuery = "{\"$project\":{\"orderdate\":1,\"orderpriority\":1,\"eq\":{\"$cond\":[{\"$lt\":[\"$lineitems.commitdate\",\"$lineitems.receiptdate\"]},0,1]}}}";
+            final MongoCollection<Document> normalized_q4_new_joined_orders = this.database
+                    .getCollection("normalized_q4_new_joined_orders");
 
-			String matchStringQuery = "{\"$match\":{\"eq\":{\"$eq\":1}}}";
+            this.normalized_order.find(bsonQuery).forEach(
+                    new Block<Document>() {
+                        @Override
+                        public void apply(final Document order) {
 
-			String groupStringQuery = "{\"$group\":{\"_id\":{\"o_orderpriority\":\"$orderpriority\"},\"order_count\":{\"$sum\":1}}}";
+                            BsonDocument lineitemsBsonQuery = BsonDocument
+                                    .parse("{\"ORDERKEY\":\""
+                                            + order
+                                            .get("ORDERKEY") + "\"}");
 
-			String sortStringQuery = "{\"$sort\":{\"o_orderpriority\":1}}";
+                            order.put("lineitems", normalized_lineitem
+                                    .find(lineitemsBsonQuery));
 
-			// String out = "{\"$out\":\"out\"}";
+                            normalized_q4_new_joined_orders.insertOne(order);
+                        }
+                    });
 
-			BsonDocument projectBsonQuery = BsonDocument
-					.parse(projectStringQuery);
+            String projectStringQuery = "{\"$project\":{\"ORDERDATE\":1,\"ORDERPRIORITY\":1,\"eq\":{\"$cond\":[{\"$lt\":[\"$lineitems.COMMITDATE\",\"$lineitems.RECEIPTDATE\"]},0,1]}}}";
 
-			BsonDocument matchBsonQuery = BsonDocument.parse(matchStringQuery);
+            String matchStringQuery = "{\"$match\":{\"eq\":{\"$eq\":1}}}";
 
-			BsonDocument groupBsonQuery = BsonDocument.parse(groupStringQuery);
+            String groupStringQuery = "{\"$group\":{\"_id\":{\"ORDERPRIORITY\":\"$ORDERPRIORITY\"},\"order_count\":{\"$sum\":1}}}";
 
-			BsonDocument sortBsonQuery = BsonDocument.parse(sortStringQuery);
+            String sortStringQuery = "{\"$sort\":{\"ORDERPRIORITY\":1}}";
 
-			// BsonDocument outBson = BsonDocument.parse(out);
+            // String out = "{\"$out\":\"out\"}";
 
-			LOGGER.info("matchBsonQuery is " + matchBsonQuery.toJson());
+            BsonDocument projectBsonQuery = BsonDocument
+                    .parse(projectStringQuery);
 
-			LOGGER.info("groupBsonQuery is " + groupBsonQuery.toJson());
+            BsonDocument matchBsonQuery = BsonDocument.parse(matchStringQuery);
 
-			LOGGER.info("sortBsonQuery is " + sortBsonQuery.toJson());
+            BsonDocument groupBsonQuery = BsonDocument.parse(groupStringQuery);
 
-			ArrayList<Bson> aggregateQuery = new ArrayList<Bson>();
+            BsonDocument sortBsonQuery = BsonDocument.parse(sortStringQuery);
 
-			aggregateQuery.add(projectBsonQuery);
-			aggregateQuery.add(matchBsonQuery);
-			// aggregateQuery.add(outBson);
-			aggregateQuery.add(groupBsonQuery);
-			aggregateQuery.add(sortBsonQuery);
+            // BsonDocument outBson = BsonDocument.parse(out);
 
-			result = normalized_q4_new_joined_orders.aggregate(aggregateQuery);
+            LOGGER.info("matchBsonQuery is " + matchBsonQuery.toJson());
 
-			// LOGGER.info("result is " +result.first().toJson());
+            LOGGER.info("groupBsonQuery is " + groupBsonQuery.toJson());
 
-			return result.first();
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE,
-					"internal server error !" + e.getLocalizedMessage());
-			final String shortReason = "internal server error !";
-			Exception cause = new IllegalArgumentException(shortReason);
-			throw new WebApplicationException(cause,
-					javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR);
-		}
-	}
+            LOGGER.info("sortBsonQuery is " + sortBsonQuery.toJson());
+
+            ArrayList<Bson> aggregateQuery = new ArrayList<Bson>();
+
+            aggregateQuery.add(projectBsonQuery);
+            aggregateQuery.add(matchBsonQuery);
+            // aggregateQuery.add(outBson);
+            aggregateQuery.add(groupBsonQuery);
+            aggregateQuery.add(sortBsonQuery);
+
+            result = normalized_q4_new_joined_orders.aggregate(aggregateQuery);
+
+
+
+            // LOGGER.info("result is " +result.first().toJson());
+
+            MongoCursor<Document> iterator = result.iterator();
+
+            ArrayList<Document> results = new ArrayList<Document>();
+            while (iterator.hasNext()) {
+                Document resultDoc = iterator.next();
+                results.add(resultDoc);
+            }
+
+            normalized_q4_new_joined_orders.drop();
+
+            return results;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE,
+                    "internal server error !" + e.getLocalizedMessage());
+            final String shortReason = "internal server error !";
+            Exception cause = new IllegalArgumentException(shortReason);
+            throw new WebApplicationException(cause,
+                    javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 }
