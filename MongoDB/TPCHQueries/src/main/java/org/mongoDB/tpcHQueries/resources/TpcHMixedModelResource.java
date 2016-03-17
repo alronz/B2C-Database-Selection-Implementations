@@ -75,8 +75,6 @@ public class TpcHMixedModelResource {
 
             String sortStringQuery = "{\"$sort\":{\"Items.RETURNFLAG\":1,\"Items.LINESTATUS\":1}}";
 
-            // String out = "{\"$out\":\"out\"}";
-
             BsonDocument matchBsonQuery = BsonDocument.parse(matchStringQuery);
 
             BsonDocument unWindBsonQuery = BsonDocument
@@ -89,26 +87,15 @@ public class TpcHMixedModelResource {
 
             BsonDocument sortBsonQuery = BsonDocument.parse(sortStringQuery);
 
-            // BsonDocument outBson = BsonDocument.parse(out);
-
-            LOGGER.info("matchBsonQuery is " + matchBsonQuery.toJson());
-
-            LOGGER.info("groupBsonQuery is " + groupBsonQuery.toJson());
-
-            LOGGER.info("sortBsonQuery is " + sortBsonQuery.toJson());
-
             ArrayList<Bson> aggregateQuery = new ArrayList<Bson>();
 
             aggregateQuery.add(matchBsonQuery);
-            // aggregateQuery.add(outBson);
             aggregateQuery.add(unWindBsonQuery);
             aggregateQuery.add(projectBsonQuery);
             aggregateQuery.add(groupBsonQuery);
             aggregateQuery.add(sortBsonQuery);
 
             result = this.mixed_order.aggregate(aggregateQuery);
-
-            // LOGGER.info("result is " +result.first().toJson());
 
             MongoCursor<Document> iterator = result.iterator();
 
@@ -174,7 +161,6 @@ public class TpcHMixedModelResource {
 
             String sortStringQuery = "{\"$sort\":{\"revenue\":1,\"ORDERDATE\":1}}";
 
-            // String out = "{\"$out\":\"out\"}";
 
             BsonDocument matchBsonQuery = BsonDocument.parse(matchStringQuery);
 
@@ -188,26 +174,15 @@ public class TpcHMixedModelResource {
 
             BsonDocument sortBsonQuery = BsonDocument.parse(sortStringQuery);
 
-            // BsonDocument outBson = BsonDocument.parse(out);
-
-            LOGGER.info("matchBsonQuery is " + matchBsonQuery.toJson());
-
-            LOGGER.info("groupBsonQuery is " + groupBsonQuery.toJson());
-
-            LOGGER.info("sortBsonQuery is " + sortBsonQuery.toJson());
-
             ArrayList<Bson> aggregateQuery = new ArrayList<Bson>();
 
             aggregateQuery.add(matchBsonQuery);
-            // aggregateQuery.add(outBson);
             aggregateQuery.add(unWindBsonQuery);
             aggregateQuery.add(projectBsonQuery);
             aggregateQuery.add(groupBsonQuery);
             aggregateQuery.add(sortBsonQuery);
 
             result = mixed_q3_new_joined_orders.aggregate(aggregateQuery);
-
-            // LOGGER.info("result is " +result.first().toJson());
 
             MongoCursor<Document> iterator = result.iterator();
 
@@ -243,48 +218,31 @@ public class TpcHMixedModelResource {
 
             String projectStringQuery = "{\"$project\":{\"ORDERDATE\":1,\"ORDERPRIORITY\":1,\"eq\":{\"$cond\":[{\"$lt\":[\"$Items.COMMITDATE\",\"$Items.RECEIPTDATE\"]},0,1]}}}";
 
-            String matchStringQuery = "{\"$match\":{\"eq\":{\"$eq\":1}}}";
-
-            String matchStringQuery2 = "{\"$match\": {\"ORDERDATE\": {\"$gte\": ISODate(\"1990-01-01T00:00:00.000Z\")},\"ORDERDATE\": {\"$lt\": ISODate(\"2000-01-01T00:00:00.000Z\")}}}";
+            String matchStringQuery = "{\"$match\": {\"ORDERDATE\": {\"$gte\": ISODate(\"1990-01-01T00:00:00.000Z\")},\"ORDERDATE\": {\"$lt\": ISODate(\"2000-01-01T00:00:00.000Z\")},\"eq\":{\"$eq\":1}}}";
 
             String groupStringQuery = "{\"$group\":{\"_id\":{\"ORDERPRIORITY\":\"$ORDERPRIORITY\"},\"order_count\":{\"$sum\":1}}}";
 
             String sortStringQuery = "{\"$sort\":{\"ORDERPRIORITY\":1}}";
 
-            // String out = "{\"$out\":\"out\"}";
 
             BsonDocument projectBsonQuery = BsonDocument
                     .parse(projectStringQuery);
 
             BsonDocument matchBsonQuery = BsonDocument.parse(matchStringQuery);
 
-            BsonDocument matchBsonQuery2 = BsonDocument
-                    .parse(matchStringQuery2);
-
             BsonDocument groupBsonQuery = BsonDocument.parse(groupStringQuery);
 
             BsonDocument sortBsonQuery = BsonDocument.parse(sortStringQuery);
-
-            // BsonDocument outBson = BsonDocument.parse(out);
-
-            LOGGER.info("matchBsonQuery is " + matchBsonQuery.toJson());
-
-            LOGGER.info("groupBsonQuery is " + groupBsonQuery.toJson());
-
-            LOGGER.info("sortBsonQuery is " + sortBsonQuery.toJson());
 
             ArrayList<Bson> aggregateQuery = new ArrayList<Bson>();
 
             aggregateQuery.add(projectBsonQuery);
             aggregateQuery.add(matchBsonQuery);
-            // aggregateQuery.add(outBson);
-            aggregateQuery.add(matchBsonQuery2);
             aggregateQuery.add(groupBsonQuery);
             aggregateQuery.add(sortBsonQuery);
 
             result = mixed_order.aggregate(aggregateQuery);
 
-            // LOGGER.info("result is " +result.first().toJson());
 
             MongoCursor<Document> iterator = result.iterator();
 

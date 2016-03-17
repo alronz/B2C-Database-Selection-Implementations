@@ -86,7 +86,6 @@ public class TpcHNormalizedModelResource {
 
             String sortStringQuery = "{\"$sort\":{\"RETURNFLAG\":1,\"LINESTATUS\":1}}";
 
-            // String out = "{\"$out\":\"out\"}";
 
             BsonDocument matchBsonQuery = BsonDocument.parse(matchStringQuery);
 
@@ -97,25 +96,15 @@ public class TpcHNormalizedModelResource {
 
             BsonDocument sortBsonQuery = BsonDocument.parse(sortStringQuery);
 
-            // BsonDocument outBson = BsonDocument.parse(out);
-
-            LOGGER.info("matchBsonQuery is " + matchBsonQuery.toJson());
-
-            LOGGER.info("groupBsonQuery is " + groupBsonQuery.toJson());
-
-            LOGGER.info("sortBsonQuery is " + sortBsonQuery.toJson());
 
             ArrayList<Bson> aggregateQuery = new ArrayList<Bson>();
 
             aggregateQuery.add(matchBsonQuery);
-            // aggregateQuery.add(outBson);
             aggregateQuery.add(projectBsonQuery);
             aggregateQuery.add(groupBsonQuery);
             aggregateQuery.add(sortBsonQuery);
 
             result = this.normalized_lineitem.aggregate(aggregateQuery);
-
-            // LOGGER.info("result is " +result.first().toJson());
 
             MongoCursor<Document> iterator = result.iterator();
 
@@ -189,8 +178,6 @@ public class TpcHNormalizedModelResource {
 
             String sortStringQuery = "{\"$sort\":{\"revenue\":1,\"ORDERDATE\":1}}";
 
-            // String out = "{\"$out\":\"out\"}";
-
             BsonDocument matchBsonQuery = BsonDocument.parse(matchStringQuery);
 
             BsonDocument unWindBsonQuery = BsonDocument
@@ -203,26 +190,16 @@ public class TpcHNormalizedModelResource {
 
             BsonDocument sortBsonQuery = BsonDocument.parse(sortStringQuery);
 
-            // BsonDocument outBson = BsonDocument.parse(out);
-
-            LOGGER.info("matchBsonQuery is " + matchBsonQuery.toJson());
-
-            LOGGER.info("groupBsonQuery is " + groupBsonQuery.toJson());
-
-            LOGGER.info("sortBsonQuery is " + sortBsonQuery.toJson());
 
             ArrayList<Bson> aggregateQuery = new ArrayList<Bson>();
 
             aggregateQuery.add(matchBsonQuery);
-            // aggregateQuery.add(outBson);
             aggregateQuery.add(unWindBsonQuery);
             aggregateQuery.add(projectBsonQuery);
             aggregateQuery.add(groupBsonQuery);
             aggregateQuery.add(sortBsonQuery);
 
             result = normalized_q3_new_joined_orders.aggregate(aggregateQuery);
-
-            // LOGGER.info("result is " +result.first().toJson());
 
             MongoCursor<Document> iterator = result.iterator();
 
@@ -289,7 +266,6 @@ public class TpcHNormalizedModelResource {
 
             String sortStringQuery = "{\"$sort\":{\"ORDERPRIORITY\":1}}";
 
-            // String out = "{\"$out\":\"out\"}";
 
             BsonDocument projectBsonQuery = BsonDocument
                     .parse(projectStringQuery);
@@ -300,27 +276,15 @@ public class TpcHNormalizedModelResource {
 
             BsonDocument sortBsonQuery = BsonDocument.parse(sortStringQuery);
 
-            // BsonDocument outBson = BsonDocument.parse(out);
-
-            LOGGER.info("matchBsonQuery is " + matchBsonQuery.toJson());
-
-            LOGGER.info("groupBsonQuery is " + groupBsonQuery.toJson());
-
-            LOGGER.info("sortBsonQuery is " + sortBsonQuery.toJson());
 
             ArrayList<Bson> aggregateQuery = new ArrayList<Bson>();
 
             aggregateQuery.add(projectBsonQuery);
             aggregateQuery.add(matchBsonQuery);
-            // aggregateQuery.add(outBson);
             aggregateQuery.add(groupBsonQuery);
             aggregateQuery.add(sortBsonQuery);
 
             result = normalized_q4_new_joined_orders.aggregate(aggregateQuery);
-
-
-
-            // LOGGER.info("result is " +result.first().toJson());
 
             MongoCursor<Document> iterator = result.iterator();
 
